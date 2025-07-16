@@ -1,17 +1,9 @@
-// Função para decodificar base64
-function dec(s) {
-  try {
-    return decodeURIComponent(escape(atob(s)));
-  } catch {
-    return "";
-  }
-}
-
 // Verifica se a página tem campos de login
 function temCamposDeLogin() {
   return (
     document.querySelector("input[name='amember_login']") &&
-    document.querySelector("input[name='amember_pass']")
+    document.querySelector("input[name='amember_pass']") &&
+    document.querySelector("form[name='login']")
   );
 }
 
@@ -75,60 +67,34 @@ function bloquearPagina() {
   document.body.appendChild(overlay);
 }
 
-// Inicia o login automático
+// Inicia o login automático em qualquer página com o formulário de login
 function iniciarLoginAutomatico() {
-  chrome.storage.local.get(null, (data) => {
-    const user = dec(data.login_user || "");
-    const pass = dec(data.login_pass || "");
-    const selectedApp = data.selected_app || "envato";
-    const apps = data.apps || {
-      envato: "https://noxtools.com/secure/page/envato"
-    };
+  const user = "ch.ai.global01@gmail.com";
+  const pass = "10072025@ia";
 
-    if (!user || !pass) {
-      alert("Credenciais não encontradas. Clique no ícone da extensão para configurar.");
-      return;
+  if (!user || !pass) {
+    alert("Credenciais não configuradas.");
+    return;
+  }
+
+  // Tenta encontrar e logar automaticamente sempre que o form existir
+  const checkForm = setInterval(() => {
+    if (temCamposDeLogin()) {
+      clearInterval(checkForm);
+      bloquearPagina();
+      fazerLogin(user, pass);
     }
-
-    const redirectURL = apps[selectedApp] || apps.envato;
-    const currentURL = window.location.href;
-    const loginURL = "https://noxtools.com/secure/login";
-    const memberURL = "https://noxtools.com/secure/member";
-
-    const isOutroApp = redirectURL === memberURL;
-
-    if (!isOutroApp && currentURL.includes(redirectURL)) {
-      if (temCamposDeLogin()) {
-        window.location.href = loginURL;
-      }
-    } else if (currentURL.includes(memberURL)) {
-      if (temCamposDeLogin()) {
-        window.location.href = loginURL;
-      } else if (!isOutroApp) {
-        window.location.href = redirectURL;
-      }
-    } else if (currentURL.includes(loginURL)) {
-      const checkForm = setInterval(() => {
-        if (document.querySelector("form[name='login']")) {
-          clearInterval(checkForm);
-          bloquearPagina();
-          fazerLogin(user, pass);
-        }
-      }, 300);
-    } else if (!isOutroApp) {
-      window.location.href = redirectURL;
-    }
-  });
+  }, 300);
 }
 
-// Escuta chamada do background
+// Escuta chamada do background (opcional, para login manual)
 chrome.runtime.onMessage.addListener((request) => {
   if (request.action === "executarLogin") {
     iniciarLoginAutomatico();
   }
 });
 
-// Executa automaticamente na página de login
+// Sempre executa nas páginas-alvo
 window.addEventListener("load", () => {
   iniciarLoginAutomatico();
   substituirLogo();

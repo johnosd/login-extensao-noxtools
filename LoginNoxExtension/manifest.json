@@ -2,15 +2,11 @@
   "manifest_version": 3,
   "name": "Login Automático NoxTools",
   "version": "1.0",
-  "description": "Faz login automático no NoxTools e redireciona para a página Envato.",
+  "description": "Faz login automático no NoxTools e personaliza a interface.",
   "permissions": ["storage"],
   "host_permissions": [
     "https://noxtools.com/*"
   ],
-  "action": {
-    "default_popup": "popup.html",
-    "default_title": "Configurar Login"
-  },
   "background": {
     "service_worker": "background.js"
   },
